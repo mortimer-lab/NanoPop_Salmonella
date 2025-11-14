@@ -30,6 +30,7 @@ rule parse_fsmlite:
     input:
         "data/kmer_db/{gene}_kmers.txt"
     output:
+        "data/kmer_db/{gene}_kmer_query.fa",
         "data/kmer_db/{gene}_shared_kmer_list.txt",
         "data/kmer_db/{gene}_unique_kmer_list.txt",
         "data/kmer_db/{gene}_kmer_presence_absence.tsv"
