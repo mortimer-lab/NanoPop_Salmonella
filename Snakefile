@@ -1,12 +1,15 @@
+import pandas as pd
+
 configfile: "config/config.yaml"
 
 include: "rules/create_kmer_db.smk"
+include: "rules/count_kmers.smk"
 
 localrules: all
 
+samples = pd.read_table(config["samples"]).set_index("sample").to_dict(orient="index")
+
 rule all:
     input:
-        expand("data/kmer_db/{gene}_shared_kmer_list.txt", gene=["fimH", "sseL"]),
-        expand("data/kmer_db/{gene}_unique_kmer_list.txt", gene=["fimH", "sseL"]),
-        expand("data/kmer_db/{gene}_kmer_presence_absence.tsv", gene=["fimH", "sseL"])
+        expand("data/kmer_counts/{sample}_{gene}.txt", gene=["fimH", "sseL"], sample=samples.keys())
 

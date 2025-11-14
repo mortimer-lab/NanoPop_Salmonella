@@ -1,4 +1,8 @@
 samples: "config/samples.tsv"
+
 allele_path: "data/alleles"
+
 kmer_length: 15
+
+negative_control_fastq: "SQK-NBD114-96_NEG_MIXES_filtlong.fastq"
 

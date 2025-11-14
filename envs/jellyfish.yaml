@@ -1,0 +1,15 @@
+name: jellyfish
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - _libgcc_mutex=0.1=conda_forge
+  - _openmp_mutex=4.5=2_gnu
+  - jellyfish=2.2.10=h6bb024c_1
+  - jemalloc=5.3.0=h5888daf_1
+  - libgcc=15.2.0=h767d61c_7
+  - libgcc-ng=15.2.0=h69a702a_7
+  - libgomp=15.2.0=h767d61c_7
+  - libjemalloc=5.3.0=h5888daf_1
+  - libstdcxx=15.2.0=h8f9b012_7
+  - libstdcxx-ng=15.2.0=h4852527_7
