@@ -15,3 +15,17 @@ rule normalize_neg:
         """
         Rscript scripts/normalize_with_negative_control.R {wildcards.gene} {wildcards.sample} {params.negative_control}
         """
+
+rule apply_threshold:
+    input:
+        "data/negative_control_normalized/{sample}_{gene}.txt"
+    output:
+        "data/kmers_passing_threshold/{sample}_{gene}.txt"
+    conda:
+        "../envs/tidyverse.yaml"
+    params:
+        threshold=config["kmer_frequency_threshold"]
+    shell:
+        """
+        Rscript scripts/apply_threshold.R {wildcards.gene} {wildcards.sample} {params.threshold}
+        """

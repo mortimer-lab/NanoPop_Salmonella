@@ -6,3 +6,5 @@ kmer_length: 15
 
 negative_control_sample: "negative"
 
+kmer_frequency_threshold: 0.005
+
