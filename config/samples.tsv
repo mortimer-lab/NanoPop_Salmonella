@@ -1,0 +1,5 @@
+sample	fastq
+sample1	data/fastqs/sample1.fastq
+sample2	data/fastqs/sample2.fastq
+sample3	data/fastqs/sample3.fastq
+negative	data/fastqs/negative.fastq
