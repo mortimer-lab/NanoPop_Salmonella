@@ -1,43 +1,40 @@
-rule fsmlite_input:
+rule kounta_input:
     output:
         "data/kmer_db/{gene}_input_alleles.txt"
     params:
         allele_path=config["allele_path"]
     shell:
         """
-        for f in {params.allele_path}/{wildcards.gene}/*.fasta; do id=$(basename "$f" .fasta); echo $id $f; done > {output}
+        for f in {params.allele_path}/{wildcards.gene}/*.fasta; do echo $f; done > {output}
         """
 
-rule fsmlite:
+rule kounta:
     input:
         "data/kmer_db/{gene}_input_alleles.txt"
     output:
-        kmers="data/kmer_db/{gene}_kmers.txt",
-        tmp_meta=temp("{gene}_tmp.meta"),
-        tmp_index=temp("{gene}_tmp.tmp")
+        kmers="data/kmer_db/{gene}_kounta.tsv",
     params:
         kmer_length=config["kmer_length"],
-        total_alleles=103
     conda:
-        "../envs/fsm-lite.yaml"
+        "../envs/kounta.yaml"
+    threads: 8
+    resources:
+        mem_mb=4000
     shell:
         """
-        mkdir -p kmers
-        fsm-lite -l {input} -t {wildcards.gene}_tmp -m {params.kmer_length} -M {params.kmer_length} -s 1 -S {params.total_alleles} > {output.kmers}
+        kounta --fofn {input} --kmer {params.kmer_length} --threads {threads} --ram 4 --out {output} 
         """
 
-rule parse_fsmlite:
+rule parse_kounta:
     input:
-        "data/kmer_db/{gene}_kmers.txt"
+        "data/kmer_db/{gene}_kounta.tsv"
     output:
         "data/kmer_db/{gene}_kmer_query.fa",
         "data/kmer_db/{gene}_shared_kmer_list.txt",
-        "data/kmer_db/{gene}_unique_kmer_list.txt",
         "data/kmer_db/{gene}_kmer_presence_absence.tsv"
-    params:
-        total_alleles=103
+    conda:
+        "../envs/tidyverse.yaml"
     shell:
         """
-        scripts/parse_allele_kmer_counts.py {input} {params.total_alleles} data/kmer_db/{wildcards.gene}
+        Rscript scripts/parse_kmer_counts.R {input} data/kmer_db/{wildcards.gene}
         """
-

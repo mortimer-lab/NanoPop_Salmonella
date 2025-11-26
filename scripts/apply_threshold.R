@@ -17,7 +17,7 @@ conserved_kmers <- conserved_kmers %>% mutate(reverse_complement = stri_reverse(
 kmer_counts_conserved <- kmer_counts %>% filter(kmer %in% conserved_kmers$kmer | kmer %in% conserved_kmers$reverse_complement)
 median_conserved_count <- median(kmer_counts_conserved$norm_count)
 threshold <- median_conserved_count*as.numeric(args[3])
-
+print(threshold)
 # filter all kmer counts to those greater than threshold
 kmer_counts_filtered <- kmer_counts %>% filter(norm_count > threshold)
 write_tsv(kmer_counts_filtered, glue("data/kmers_passing_threshold/{args[2]}_{args[1]}.txt"))
