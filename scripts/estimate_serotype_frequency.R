@@ -6,25 +6,22 @@ library(glue)
 args <- commandArgs(trailingOnly = TRUE)
 
 # read in kmer counts
-fimH_counts <- read_tsv(glue("data/kmers_passing_threshold/{args[1]}_fimH.txt"))
-sseL_counts <- read_tsv(glue("data/kmers_passing_threshold/{args[1]}_sseL.txt"))
+fimH_counts <- read_tsv(glue("data/kmers_passing_threshold/{args[1]}_fimH.txt"), show_col_types = F)
+sseL_counts <- read_tsv(glue("data/kmers_passing_threshold/{args[1]}_sseL.txt"), show_col_types = F)
 
 # read in kmer presence absence matrices and add reverse complemented kmer
-fimH_kmer_presence_absence <- read_tsv("data/kmer_db/fimH_kmer_presence_absence.tsv")
-fimH_kmer_presence_absence <- fimH_kmer_presence_absence %>% rename("kmer" = "...1")
+fimH_kmer_presence_absence <- read_tsv("data/kmer_db/fimH_kmer_presence_absence.tsv", show_col_types = F)
 fimH_kmer_presence_absence <- fimH_kmer_presence_absence %>% mutate(reverse_complement = stri_reverse(chartr("ATCG", "TAGC", kmer)))
 fimH_kmer_presence_absence <- fimH_kmer_presence_absence %>% relocate(reverse_complement, .after = kmer)
 
 
-sseL_kmer_presence_absence <- read_tsv("data/kmer_db/sseL_kmer_presence_absence.tsv")
-sseL_kmer_presence_absence <- sseL_kmer_presence_absence %>% rename("kmer" = "...1")
+sseL_kmer_presence_absence <- read_tsv("data/kmer_db/sseL_kmer_presence_absence.tsv", show_col_types = F)
 sseL_kmer_presence_absence <- sseL_kmer_presence_absence %>% mutate(reverse_complement = stri_reverse(chartr("ATCG", "TAGC", kmer)))
 sseL_kmer_presence_absence <- sseL_kmer_presence_absence %>% relocate(reverse_complement, .after = kmer)
 
 # get strain names 
 fimH_strains <- tail(colnames(fimH_kmer_presence_absence), -2)
 sseL_strains <- tail(colnames(sseL_kmer_presence_absence), -2)
-
 
 # function to detect presence of strains
 
@@ -45,12 +42,29 @@ fimH_present <- fimH_strains %>%
 	map_lgl(check_strain_presence, counts = fimH_counts, presence_absence = fimH_kmer_presence_absence)
 
 fimH_alleles_present <- fimH_strains[fimH_present]
+fimH_strains_present <- str_extract(fimH_alleles_present, "^[^-]+")
+
 sseL_present <- sseL_strains %>% 
 	map_lgl(check_strain_presence, counts = sseL_counts, presence_absence = sseL_kmer_presence_absence)
-
 sseL_alleles_present <- sseL_strains[sseL_present]
+sseL_strains_present <- str_extract(sseL_alleles_present, "^[^-]+")
 
-strains_present <- intersect(fimH_alleles_present, sseL_alleles_present)
+strains_present <- sort(intersect(fimH_strains_present, sseL_strains_present))
+
+# if Typhimurium and monophasic variant are both present, only include Typhimurium
+if ("Typhimurium" %in% strains_present && "I4512i" %in% strains_present){
+	strains_present <- strains_present[strains_present != "I4512i"]
+}
+
+# keep only the first allele from a "present" strain
+
+fimH_alleles_present_filtered <- sort(str_subset(fimH_alleles_present, paste(strains_present, collapse='|')))
+fimH_alleles_from_same_strain <- str_extract(fimH_alleles_present_filtered, "^[^-]+") %>% duplicated()
+fimH_alleles_present_filtered <- fimH_alleles_present_filtered[!fimH_alleles_from_same_strain]
+
+sseL_alleles_present_filtered <- sort(str_subset(sseL_alleles_present, paste(strains_present, collapse='|')))
+sseL_alleles_from_same_strain <- str_extract(sseL_alleles_present_filtered, "^[^-]+") %>% duplicated()
+sseL_alleles_present_filtered <- sseL_alleles_present_filtered[!sseL_alleles_from_same_strain]
 
 # get unique fimH and sseL kmers for each strain
 get_present_kmer <- function(strain, presence_absence){
@@ -69,8 +83,8 @@ get_unique_kmer <- function(strain_list, presence_absence){
 	return(unique_kmers)
 }
 
-fimH_unique_kmers <- get_unique_kmer(strains_present, fimH_kmer_presence_absence)	
-sseL_unique_kmers <- get_unique_kmer(strains_present, sseL_kmer_presence_absence)
+fimH_unique_kmers <- get_unique_kmer(fimH_alleles_present_filtered, fimH_kmer_presence_absence)	
+sseL_unique_kmers <- get_unique_kmer(sseL_alleles_present_filtered, sseL_kmer_presence_absence)
 
 # get median counts for these unique kmers
 
@@ -79,10 +93,11 @@ get_median_counts <- function(kmer_list, kmer_counts){
 	return(median(k_counts))
 }
 
+
 fimH_median_counts <- fimH_unique_kmers %>% map_dbl(get_median_counts, kmer_counts = fimH_counts)
 sseL_median_counts <- sseL_unique_kmers %>% map_dbl(get_median_counts, kmer_counts = sseL_counts)
 
-median_counts <- data.frame(strain = strains_present, fimH_counts = fimH_median_counts, sseL_counts = sseL_median_counts)
+median_counts <- data.frame(strain = strains_present, fimH_counts = fimH_median_counts, sseL_counts = sseL_median_counts) 
 
 median_counts <- median_counts %>% 
 	mutate(fimH_proportion = fimH_counts/sum(fimH_counts)) %>%
