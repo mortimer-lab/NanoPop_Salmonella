@@ -97,11 +97,34 @@ get_median_counts <- function(kmer_list, kmer_counts){
 fimH_median_counts <- fimH_unique_kmers %>% map_dbl(get_median_counts, kmer_counts = fimH_counts)
 sseL_median_counts <- sseL_unique_kmers %>% map_dbl(get_median_counts, kmer_counts = sseL_counts)
 
-median_counts <- data.frame(strain = strains_present, fimH_counts = fimH_median_counts, sseL_counts = sseL_median_counts) 
+# read in median counts from conserved kmers
+
+fimH_conserved_counts <- scan(glue("data/conserved_kmer_count/{args[1]}_fimH.txt"), what = numeric())
+sseL_conserved_counts <- scan(glue("data/conserved_kmer_count/{args[1]}_sseL.txt"), what = numeric())
+
+# make output data frame
+
+median_counts <- data.frame(strain = strains_present, fimH_counts = fimH_median_counts, sseL_counts = sseL_median_counts)
 
 median_counts <- median_counts %>% 
-	mutate(fimH_proportion = fimH_counts/sum(fimH_counts)) %>%
-	mutate(sseL_proportion = sseL_counts/sum(sseL_counts)) %>%
-	mutate(average_proportion = (fimH_proportion+sseL_proportion)/2)
+	mutate(fimH_known_proportion = fimH_counts/sum(fimH_counts)) %>%
+	mutate(sseL_known_proportion = sseL_counts/sum(sseL_counts)) %>%
+	mutate(average_known_proportion = (fimH_known_proportion+sseL_known_proportion)/2)
+
+# estimate proportion of reads covered by known strains
+
+fimH_unknown <- 100*pmax(0, 1 - sum(median_counts$fimH_counts)/fimH_conserved_counts)
+sseL_unknown <- 100*pmax(0, 1 - sum(median_counts$sseL_counts)/sseL_conserved_counts)
+print(fimH_unknown)
+print(sseL_unknown)
+if (fimH_unknown < 1 && sseL_unknown < 1) {
+	unknown_sample_description <- glue("{args[1]}\tall strains represented in database")
+} else {
+	unknown_sample_description <- glue("{args[1]}\tpotential unknown strain: {fimH_unknown}% of fimH reads do not match known allele, {sseL_unknown}% of sseL reads do not match known allele")
+}
+
+file_connection <- file("data/strain_proportion_estimates/unknown_strain_estimates.txt", open = "a")
+writeLines(unknown_sample_description, file_connection) 
+close(file_connection)
 
 write_tsv(median_counts, glue("data/strain_proportion_estimates/{args[1]}.txt"))
