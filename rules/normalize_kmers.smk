@@ -18,9 +18,10 @@ rule normalize_neg:
 
 rule apply_threshold:
     input:
-        "data/negative_control_normalized/{sample}_{gene}.txt"
+        "data/negative_control_normalized/{sample}_{gene}.txt",
     output:
-        "data/kmers_passing_threshold/{sample}_{gene}.txt"
+        "data/kmers_passing_threshold/{sample}_{gene}.txt",
+        "data/conserved_kmer_count/{sample}_{gene}.txt"
     conda:
         "../envs/tidyverse.yaml"
     params:
