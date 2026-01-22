@@ -93,9 +93,72 @@ get_median_counts <- function(kmer_list, kmer_counts){
 	return(median(k_counts))
 }
 
-
 fimH_median_counts <- fimH_unique_kmers %>% map_dbl(get_median_counts, kmer_counts = fimH_counts)
 sseL_median_counts <- sseL_unique_kmers %>% map_dbl(get_median_counts, kmer_counts = sseL_counts)
+
+# check for NAs in median counts; if they exist, remove counts for found serovars and rerun unique kmers/median counts
+
+# define function to get minimum kmer count
+get_minimum_counts <- function(kmer_list, kmer_counts){
+	k_counts <- kmer_counts %>% filter(kmer %in% kmer_list) %>% pull(norm_count)
+	return(min(k_counts))
+}
+
+# define function to update kmer counts with minimum count substracted from all present kmers
+
+update_kmer_counts <- function(kmer_counts, presence_absence, min_strain, min_value){
+	strain_kmers <- get_present_kmer(min_strain, presence_absence)
+	new_kmer_counts <- kmer_counts %>% mutate(if_else(kmer %in% strain_kmers, norm_count - min_value, norm_count))
+	return(new_kmer_counts)
+}
+
+# define functions to check if remaining alleles with unknown counts are in fact identical and unresolvable
+
+check_identical_alleles <- function(unresolved_strain_list, presence_absence){
+	filtered_patterns <- presence_absence %>% select(all_of(unresolved_strain_list))
+	unique_patterns <- unique(as.list(filtered_patterns))
+	# if there is only one unique presence absence pattern but multiple unresolved strains, return True
+	return(length(unique_patterns) == 1 & length(unresolved_strain_list) > 1)
+}
+
+fimH_alleles_present_filtered_orig <- fimH_alleles_present_filtered
+while (anyNA(fimH_median_counts)) {
+	fimH_minimum_counts <- fimH_unique_kmers %>% map_dbl(get_minimum_counts, kmer_counts = fimH_counts)
+	fimH_min_strain <- fimH_alleles_present_filtered[which.min(fimH_minimum_counts)]
+	fimH_counts <- update_kmer_counts(fimH_counts, fimH_kmer_presence_absence, fimH_min_strain, min(fimH_minimum_counts))
+	fimH_alleles_present_filtered <- fimH_alleles_present_filtered[fimH_alleles_present_filtered != fimH_min_strain] 
+	fimH_unique_kmers <- get_unique_kmer(fimH_alleles_present_filtered, fimH_kmer_presence_absence)	
+	fimH_median_counts_new <- fimH_unique_kmers %>% map_dbl(get_median_counts, kmer_counts = fimH_counts)
+	# update counts with new values
+	for (a in fimH_alleles_present_filtered){
+		orig_index <- match(a, fimH_alleles_present_filtered_orig)
+		new_index <- match(a, fimH_alleles_present_filtered)
+		fimH_median_counts[orig_index] <- fimH_median_counts_new[new_index]
+	}
+	if (check_identical_alleles(fimH_alleles_present_filtered_orig[is.na(fimH_median_counts)], fimH_kmer_presence_absence)){
+		break
+	}
+}
+
+sseL_alleles_present_filtered_orig <- sseL_alleles_present_filtered
+while (anyNA(sseL_median_counts)) {
+	sseL_minimum_counts <- sseL_unique_kmers %>% map_dbl(get_minimum_counts, kmer_counts = sseL_counts)
+	sseL_min_strain <- sseL_alleles_present_filtered[which.min(sseL_minimum_counts)]
+	sseL_counts <- update_kmer_counts(sseL_counts, sseL_kmer_presence_absence, sseL_min_strain, min(sseL_minimum_counts))
+	sseL_alleles_present_filtered <- sseL_alleles_present_filtered[sseL_alleles_present_filtered != sseL_min_strain] 
+	sseL_unique_kmers <- get_unique_kmer(sseL_alleles_present_filtered, sseL_kmer_presence_absence)
+	sseL_median_counts_new <- sseL_unique_kmers %>% map_dbl(get_median_counts, kmer_counts = sseL_counts)
+	# update counts with new values
+	for (a in sseL_alleles_present_filtered){
+		orig_index <- match(a, sseL_alleles_present_filtered_orig)
+		new_index <- match(a, sseL_alleles_present_filtered)
+		sseL_median_counts[orig_index] <- sseL_median_counts_new[new_index]
+	}
+	if (check_identical_alleles(sseL_alleles_present_filtered_orig[is.na(sseL_median_counts)], sseL_kmer_presence_absence)){
+		break
+	}
+}
+
 
 # read in median counts from conserved kmers
 
@@ -115,9 +178,10 @@ median_counts <- median_counts %>%
 
 fimH_unknown <- 100*pmax(0, 1 - sum(median_counts$fimH_counts)/fimH_conserved_counts)
 sseL_unknown <- 100*pmax(0, 1 - sum(median_counts$sseL_counts)/sseL_conserved_counts)
-print(fimH_unknown)
-print(sseL_unknown)
-if (fimH_unknown < 1 && sseL_unknown < 1) {
+
+if (anyNA(c(fimH_unknown, sseL_unknown))){
+	unknown_sample_description <- glue("{args[1]}\tsample contains two strains with identical alleles in fimH or sseL : unknowns cannot be identified")
+} else if (fimH_unknown < 1 && sseL_unknown < 1) {
 	unknown_sample_description <- glue("{args[1]}\tall strains represented in database")
 } else {
 	unknown_sample_description <- glue("{args[1]}\tpotential unknown strain: {fimH_unknown}% of fimH reads do not match known allele, {sseL_unknown}% of sseL reads do not match known allele")
