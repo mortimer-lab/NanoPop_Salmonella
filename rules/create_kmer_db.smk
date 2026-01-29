@@ -22,6 +22,7 @@ rule kounta:
         mem_mb=4000
     shell:
         """
+        ulimit -n 2048
         kounta --fofn {input} --kmer {params.kmer_length} --threads {threads} --ram 4 --out {output} 
         """
 
