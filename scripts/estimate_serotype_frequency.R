@@ -58,11 +58,11 @@ if ("Typhimurium" %in% strains_present && "I4512i" %in% strains_present){
 
 # keep only the first allele from a "present" strain
 
-fimH_alleles_present_filtered <- sort(str_subset(fimH_alleles_present, paste(strains_present, collapse='|')))
+fimH_alleles_present_filtered <- sort(str_subset(fimH_alleles_present, paste(paste0(strains_present, "-"), collapse='|')))
 fimH_alleles_from_same_strain <- str_extract(fimH_alleles_present_filtered, "^[^-]+") %>% duplicated()
 fimH_alleles_present_filtered <- fimH_alleles_present_filtered[!fimH_alleles_from_same_strain]
 
-sseL_alleles_present_filtered <- sort(str_subset(sseL_alleles_present, paste(strains_present, collapse='|')))
+sseL_alleles_present_filtered <- sort(str_subset(sseL_alleles_present, paste(paste0(strains_present, "-"), collapse='|')))
 sseL_alleles_from_same_strain <- str_extract(sseL_alleles_present_filtered, "^[^-]+") %>% duplicated()
 sseL_alleles_present_filtered <- sseL_alleles_present_filtered[!sseL_alleles_from_same_strain]
 
