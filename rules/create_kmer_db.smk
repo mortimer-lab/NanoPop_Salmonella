@@ -19,7 +19,8 @@ rule kounta:
         "../envs/kounta.yaml"
     threads: 8
     resources:
-        mem_mb=4000
+        mem_mb=4000,
+        runtime=30
     shell:
         """
         ulimit -n 2048
