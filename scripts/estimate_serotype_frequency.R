@@ -108,7 +108,7 @@ get_minimum_counts <- function(kmer_list, kmer_counts){
 
 update_kmer_counts <- function(kmer_counts, presence_absence, min_strain, min_value){
 	strain_kmers <- get_present_kmer(min_strain, presence_absence)
-	new_kmer_counts <- kmer_counts %>% mutate(norm_count = if_else(kmer %in% strain_kmers, max(0,norm_count - min_value), norm_count))
+	new_kmer_counts <- kmer_counts %>% mutate(norm_count = if_else(kmer %in% strain_kmers, norm_count - min_value, norm_count))
 	return(new_kmer_counts)
 }
 
