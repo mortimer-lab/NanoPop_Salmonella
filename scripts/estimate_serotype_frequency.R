@@ -181,7 +181,7 @@ sseL_unknown <- 100*pmax(0, 1 - sum(median_counts$sseL_counts)/sseL_conserved_co
 
 if (anyNA(c(fimH_unknown, sseL_unknown))){
 	unknown_sample_description <- glue("{args[1]}\tsample contains two strains with identical alleles in fimH or sseL : unknowns cannot be identified")
-} else if (fimH_unknown < 0.985 && sseL_unknown < 0.985) {
+} else if (fimH_unknown < 2.5 && sseL_unknown < 2.5) {
 	unknown_sample_description <- glue("{args[1]}\tall strains represented in database")
 } else {
 	unknown_sample_description <- glue("{args[1]}\tpotential unknown strain: {fimH_unknown}% of fimH reads do not match known allele, {sseL_unknown}% of sseL reads do not match known allele")
