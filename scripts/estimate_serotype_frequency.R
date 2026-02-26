@@ -108,7 +108,7 @@ get_minimum_counts <- function(kmer_list, kmer_counts){
 
 update_kmer_counts <- function(kmer_counts, presence_absence, min_strain, min_value){
 	strain_kmers <- get_present_kmer(min_strain, presence_absence)
-	new_kmer_counts <- kmer_counts %>% mutate(if_else(kmer %in% strain_kmers, norm_count - min_value, norm_count))
+	new_kmer_counts <- kmer_counts %>% mutate(norm_count = if_else(kmer %in% strain_kmers, max(0,norm_count - min_value), norm_count))
 	return(new_kmer_counts)
 }
 
@@ -124,9 +124,12 @@ check_identical_alleles <- function(unresolved_strain_list, presence_absence){
 fimH_alleles_present_filtered_orig <- fimH_alleles_present_filtered
 while (anyNA(fimH_median_counts)) {
 	fimH_minimum_counts <- fimH_unique_kmers %>% map_dbl(get_minimum_counts, kmer_counts = fimH_counts)
-	fimH_min_strain <- fimH_alleles_present_filtered[which.min(fimH_minimum_counts)]
-	fimH_counts <- update_kmer_counts(fimH_counts, fimH_kmer_presence_absence, fimH_min_strain, min(fimH_minimum_counts))
-	fimH_alleles_present_filtered <- fimH_alleles_present_filtered[fimH_alleles_present_filtered != fimH_min_strain] 
+	fimH_finite_max <- max(fimH_minimum_counts[is.finite(fimH_minimum_counts)])
+	fimH_max_logical <- fimH_minimum_counts == fimH_finite_max
+	fimH_max_logical[is.na(fimH_max_logical)] <- FALSE
+	fimH_max_strain <- fimH_alleles_present_filtered[fimH_max_logical]
+	fimH_counts <- update_kmer_counts(fimH_counts, fimH_kmer_presence_absence, fimH_max_strain, fimH_finite_max)
+	fimH_alleles_present_filtered <- fimH_alleles_present_filtered[fimH_alleles_present_filtered != fimH_max_strain] 
 	fimH_unique_kmers <- get_unique_kmer(fimH_alleles_present_filtered, fimH_kmer_presence_absence)	
 	fimH_median_counts_new <- fimH_unique_kmers %>% map_dbl(get_median_counts, kmer_counts = fimH_counts)
 	# update counts with new values
@@ -143,9 +146,12 @@ while (anyNA(fimH_median_counts)) {
 sseL_alleles_present_filtered_orig <- sseL_alleles_present_filtered
 while (anyNA(sseL_median_counts)) {
 	sseL_minimum_counts <- sseL_unique_kmers %>% map_dbl(get_minimum_counts, kmer_counts = sseL_counts)
-	sseL_min_strain <- sseL_alleles_present_filtered[which.min(sseL_minimum_counts)]
-	sseL_counts <- update_kmer_counts(sseL_counts, sseL_kmer_presence_absence, sseL_min_strain, min(sseL_minimum_counts))
-	sseL_alleles_present_filtered <- sseL_alleles_present_filtered[sseL_alleles_present_filtered != sseL_min_strain] 
+	sseL_finite_max <- max(sseL_minimum_counts[is.finite(sseL_minimum_counts)])
+	sseL_max_logical <- sseL_minimum_counts == sseL_finite_max
+	sseL_max_logical[is.na(sseL_max_logical)] <- FALSE
+	sseL_max_strain <- sseL_alleles_present_filtered[sseL_max_logical]
+	sseL_counts <- update_kmer_counts(sseL_counts, sseL_kmer_presence_absence, sseL_max_strain, sseL_finite_max)
+	sseL_alleles_present_filtered <- sseL_alleles_present_filtered[sseL_alleles_present_filtered != sseL_max_strain] 
 	sseL_unique_kmers <- get_unique_kmer(sseL_alleles_present_filtered, sseL_kmer_presence_absence)
 	sseL_median_counts_new <- sseL_unique_kmers %>% map_dbl(get_median_counts, kmer_counts = sseL_counts)
 	# update counts with new values
