@@ -123,6 +123,9 @@ check_identical_alleles <- function(unresolved_strain_list, presence_absence){
 
 fimH_alleles_present_filtered_orig <- fimH_alleles_present_filtered
 while (anyNA(fimH_median_counts)) {
+	if (check_identical_alleles(fimH_alleles_present_filtered_orig[is.na(fimH_median_counts)], fimH_kmer_presence_absence)){
+		break
+	}
 	fimH_minimum_counts <- fimH_unique_kmers %>% map_dbl(get_minimum_counts, kmer_counts = fimH_counts)
 	fimH_finite_max <- max(fimH_minimum_counts[is.finite(fimH_minimum_counts)])
 	fimH_max_logical <- fimH_minimum_counts == fimH_finite_max
@@ -138,14 +141,15 @@ while (anyNA(fimH_median_counts)) {
 		new_index <- match(a, fimH_alleles_present_filtered)
 		fimH_median_counts[orig_index] <- fimH_median_counts_new[new_index]
 	}
-	if (check_identical_alleles(fimH_alleles_present_filtered_orig[is.na(fimH_median_counts)], fimH_kmer_presence_absence)){
-		break
-	}
 }
 
 sseL_alleles_present_filtered_orig <- sseL_alleles_present_filtered
 while (anyNA(sseL_median_counts)) {
+	if (check_identical_alleles(sseL_alleles_present_filtered_orig[is.na(sseL_median_counts)], sseL_kmer_presence_absence)){
+		break
+	}
 	sseL_minimum_counts <- sseL_unique_kmers %>% map_dbl(get_minimum_counts, kmer_counts = sseL_counts)
+	print(sseL_minimum_counts)
 	sseL_finite_max <- max(sseL_minimum_counts[is.finite(sseL_minimum_counts)])
 	sseL_max_logical <- sseL_minimum_counts == sseL_finite_max
 	sseL_max_logical[is.na(sseL_max_logical)] <- FALSE
@@ -159,9 +163,6 @@ while (anyNA(sseL_median_counts)) {
 		orig_index <- match(a, sseL_alleles_present_filtered_orig)
 		new_index <- match(a, sseL_alleles_present_filtered)
 		sseL_median_counts[orig_index] <- sseL_median_counts_new[new_index]
-	}
-	if (check_identical_alleles(sseL_alleles_present_filtered_orig[is.na(sseL_median_counts)], sseL_kmer_presence_absence)){
-		break
 	}
 }
 
