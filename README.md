@@ -36,10 +36,10 @@ kmer_frequency_threshold: 0.002               # minimum frequency of strain spec
 The sample description file should have sample names in the first column and paths to fastqs in the second column. The header row is required. The sample name for the negative control should match what is listed in the `config.yaml` file.
 ```
 sample	fastq
-sample1	data/fastqs/sample1.fastq
-sample2	data/fastqs/sample2.fastq
-sample3	data/fastqs/sample3.fastq
-negative	data/fastqs/negative.fastq
+sample1	path/to/fastqs/sample1.fastq
+sample2	path/to/fastqs/sample2.fastq
+sample3	path/to/fastqs/sample3.fastq
+negative	path/to/fastqs/negative.fastq
 ```
 
 ### rules
