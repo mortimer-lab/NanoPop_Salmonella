@@ -1,5 +1,5 @@
 sample	fastq
-sample1	data/fastqs/sample1.fastq
-sample2	data/fastqs/sample2.fastq
-sample3	data/fastqs/sample3.fastq
-negative	data/fastqs/negative.fastq
+sample1	path/to/fastqs/sample1.fastq
+sample2	path/to/fastqs/sample2.fastq
+sample3	path/to/fastqs/sample3.fastq
+negative	path/to/fastqs/negative.fastq
