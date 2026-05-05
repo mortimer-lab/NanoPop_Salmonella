@@ -159,7 +159,7 @@ KentuckyI       1710    527     0.06193632511137673     0.044954363217606416    
 ```
 sample1   all strains represented in database
 sample2   all strains represented in database
-sample3   potential unknown strain: 2.9% of fimH reads do not match known allele, 4.7% of sseL reads do not match known allel
+sample3   potential unknown strain: 2.9% of fimH reads do not match known allele, 4.7% of sseL reads do not match known allele
 ```
 
 
