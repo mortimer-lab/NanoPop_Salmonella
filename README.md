@@ -24,7 +24,7 @@ Configuration files specific to your analysis. Template files have been included
 ```
 samples: "config/samples.tsv"                 # path to samples file
 
-allele_path: "data/alleles"                   # path to alleles database
+allele_path: "alleles"                        # path to alleles database
 
 kmer_length: 15                               # kmer length to create kmer presence/absence database
 
@@ -98,7 +98,7 @@ Main Snakefile that imports rules and defines desired output. This file should n
 A database of alleles for each gene is required. These alleles should be in a directory with the name of the gene, and each allele should be in a separate fasta file. It is required that the allele be named with the strain/serotype name followed by a dash and then a specific genome designation from which the allele came from. For example:
 
 ```
-data/alleles/
+alleles/
 
 fimH/
 Agona-GCA_006890265.1.fasta        KentuckyI-GCA_008516425.1.fasta      Poona-GCA_008480745.1.fasta
