@@ -30,7 +30,7 @@ kmer_length: 15                               # kmer length to create kmer prese
 
 negative_control_sample: "negative"           # name of negative control sample
 
-kmer_frequency_threshold: 0.002               # minimum frequency of strain specific kmers compared to conserved kmers to consider a strain present
+kmer_frequency_threshold: 0.003               # minimum frequency of strain specific kmers compared to conserved kmers to consider a strain present
 ```
 #### samples.tsv
 The sample description file should have sample names in the first column and paths to fastqs in the second column. The header row is required. The sample name for the negative control should match what is listed in the `config.yaml` file.
